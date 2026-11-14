@@ -1,1 +1,203 @@
 
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#247653">
+<title>Mi Organizador de Platillos</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,sans-serif;background:#f4f7f3;color:#26352b}
+header{background:#247653;color:white;padding:22px 16px}
+header h1{margin:0;font-size:23px}
+header p{margin:7px 0 0;font-size:14px}
+nav{display:flex;overflow:auto;background:white;position:sticky;top:0;z-index:2}
+nav button{border:0;background:white;padding:15px 13px;font-size:14px;color:#31513d}
+nav button.active{color:#247653;border-bottom:3px solid #247653;font-weight:bold}
+main{padding:15px;max-width:700px;margin:auto}
+section{display:none}
+section.active{display:block}
+.card{background:white;padding:16px;border-radius:13px;margin:12px 0;box-shadow:0 2px 8px #0000000d}
+h2{font-size:20px;margin-top:5px}
+input,select,textarea{width:100%;padding:12px;margin:6px 0 13px;border:1px solid #ccd6cc;border-radius:8px;font-size:16px;background:white}
+textarea{min-height:95px}
+label{font-size:14px;font-weight:bold}
+.btn{background:#247653;color:white;border:0;padding:12px 16px;border-radius:8px;font-size:15px}
+.btn2{background:#e6eee7;color:#24583a;border:0;padding:9px 12px;border-radius:8px}
+.item{padding:12px 0;border-bottom:1px solid #e7ece7}
+.small{font-size:13px;color:#66756a}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.row>*{flex:1}
+.day{font-weight:bold;color:#247653;margin-top:15px}
+.empty{color:#718075;text-align:center;padding:22px}
+</style>
+</head>
+<body>
+<header>
+<h1>🥗 Mi Organizador de Platillos</h1>
+<p>Tus recetas, tu menú y tus compras en un solo lugar</p>
+</header>
+<nav>
+<button class="active" onclick="tab('recetas',this)">🍲 Recetas</button>
+<button onclick="tab('semana',this)">📅 Mi semana</button>
+<button onclick="tab('compras',this)">🛒 Compras</button>
+<button onclick="tab('despensa',this)">🏠 Despensa</button>
+</nav>
+<main>
+<section id="recetas" class="active">
+<div class="card">
+<h2>Agregar un platillo</h2>
+<label>Nombre de la receta</label>
+<input id="nombre" placeholder="Ej. Pollo con verduras">
+<label>Categoría</label>
+<select id="categoria">
+<option>Pollo</option><option>Carne de res</option><option>Cerdo</option>
+<option>Pescado</option><option>Verduras</option><option>Pastas</option>
+<option>Ensaladas</option><option>Sopas</option><option>Desayunos</option>
+<option>Postres</option><option>Otros</option>
+</select>
+<label>Ingredientes (uno por renglón)</label>
+<textarea id="ingredientes" placeholder="500 g de pollo&#10;2 calabazas&#10;1 tomate"></textarea>
+<div class="row">
+<div><label>Porciones</label><input id="porciones" type="number" min="1" value="2"></div>
+<div><label>Calorías por porción</label><input id="calorias" type="number" min="0" placeholder="Ej. 350"></div>
+</div>
+<button class="btn" onclick="guardarReceta()">Guardar receta</button>
+</div>
+<h2>Mis platillos guardados</h2>
+<div id="listaRecetas"></div>
+</section>
+
+<section id="semana">
+<div class="card">
+<h2>Organiza tu menú semanal</h2>
+<p class="small">Selecciona una receta para cada comida. Los cambios se guardan en este teléfono.</p>
+<div id="plan"></div>
+</div>
+</section>
+
+<section id="compras">
+<div class="card">
+<h2>🛒 Lista de compras</h2>
+<p class="small">Ingredientes de las recetas elegidas en tu menú semanal.</p>
+<button class="btn" onclick="crearCompras()">Generar lista</button>
+<div id="listaCompras"></div>
+</div>
+</section>
+
+<section id="despensa">
+<div class="card">
+<h2>Mi despensa</h2>
+<label>Producto que tienes</label>
+<input id="producto" placeholder="Ej. Arroz">
+<label>Cantidad disponible</label>
+<input id="cantidad" placeholder="Ej. 1 kg">
+<button class="btn" onclick="agregarDespensa()">Agregar a mi despensa</button>
+<div id="listaDespensa"></div>
+</div>
+</section>
+</main>
+<script>
+const dias=["Lunes","Martes","Miércoles","Jueves","Viernes","Sábado","Domingo"];
+const comidas=["Desayuno","Comida","Cena"];
+let recetas=JSON.parse(localStorage.getItem("recetas")||"[]");
+let plan=JSON.parse(localStorage.getItem("plan")||"{}");
+let despensa=JSON.parse(localStorage.getItem("despensa")||"[]");
+let comprados=JSON.parse(localStorage.getItem("comprados")||"[]");
+function guardar(){
+localStorage.setItem("recetas",JSON.stringify(recetas));
+localStorage.setItem("plan",JSON.stringify(plan));
+localStorage.setItem("despensa",JSON.stringify(despensa));
+localStorage.setItem("comprados",JSON.stringify(comprados));
+}
+function tab(id,boton){
+document.querySelectorAll("main section").forEach(s=>s.classList.remove("active"));
+document.getElementById(id).classList.add("active");
+document.querySelectorAll("nav button").forEach(b=>b.classList.remove("active"));
+boton.classList.add("active");
+if(id==="recetas")mostrarRecetas();
+if(id==="semana")mostrarPlan();
+if(id==="despensa")mostrarDespensa();
+if(id==="compras")crearCompras();
+}
+function escapar(t){
+return String(t).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+function guardarReceta(){
+let nombre=document.getElementById("nombre").value.trim();
+let ingredientes=document.getElementById("ingredientes").value.trim();
+if(!nombre||!ingredientes){alert("Escribe el nombre y los ingredientes.");return;}
+recetas.push({id:Date.now(),nombre,categoria:document.getElementById("categoria").value,
+ingredientes:ingredientes.split("\n").map(x=>x.trim()).filter(Boolean),
+porciones:Math.max(1,Number(document.getElementById("porciones").value)||1),
+calorias:Number(document.getElementById("calorias").value)||0});
+guardar();
+["nombre","ingredientes","calorias"].forEach(id=>document.getElementById(id).value="");
+mostrarRecetas();
+alert("¡Receta guardada!");
+}
+function mostrarRecetas(){
+let el=document.getElementById("listaRecetas");
+if(!recetas.length){el.innerHTML='<div class="empty">Todavía no tienes recetas guardadas.</div>';return;}
+el.innerHTML=recetas.map(r=>`<div class="card"><b>${escapar(r.nombre)}</b>
+<div class="small">${escapar(r.categoria)} · ${r.porciones} porciones · ${r.calorias} kcal por porción</div>
+<p>${r.ingredientes.map(escapar).join("<br>")}</p>
+<button class="btn2" onclick="borrarReceta(${r.id})">Eliminar</button></div>`).join("");
+}
+function borrarReceta(id){
+if(!confirm("¿Eliminar esta receta?"))return;
+recetas=recetas.filter(r=>r.id!==id);guardar();mostrarRecetas();mostrarPlan();
+}
+function mostrarPlan(){
+let html="";
+dias.forEach(d=>{
+html+=`<div class="day">${d}</div>`;
+comidas.forEach(c=>{
+let k=d+"-"+c,valor=plan[k]||"";
+html+=`<label>${c}</label><select onchange="cambiarPlan('${k}',this.value)">
+<option value="">-- Elegir platillo --</option>
+${recetas.map(r=>`<option value="${r.id}" ${String(r.id)===String(valor)?"selected":""}>${escapar(r.nombre)}</option>`).join("")}
+</select>`;
+});
+});
+document.getElementById("plan").innerHTML=html;
+}
+function cambiarPlan(k,v){if(v)plan[k]=v;else delete plan[k];guardar();}
+function crearCompras(){
+let items={};
+Object.values(plan).forEach(id=>{
+let r=recetas.find(x=>String(x.id)===String(id));
+if(r)r.ingredientes.forEach(i=>{let k=i.toLowerCase();if(!items[k])items[k]=i;});
+});
+let lista=Object.values(items);
+let el=document.getElementById("listaCompras");
+if(!lista.length){el.innerHTML='<div class="empty">Elige recetas en Mi semana para generar tu lista.</div>';return;}
+el.innerHTML=lista.map(i=>`<div class="item"><label><input style="width:auto;margin-right:8px" type="checkbox" ${comprados.includes(i)?"checked":""} onchange="marcarCompra('${encodeURIComponent(i)}',this.checked)"> ${escapar(i)}</label></div>`).join("");
+}
+function marcarCompra(i,estado){
+i=decodeURIComponent(i);
+if(estado&&!comprados.includes(i))comprados.push(i);
+if(!estado)comprados=comprados.filter(x=>x!==i);
+guardar();
+}
+function agregarDespensa(){
+let p=document.getElementById("producto").value.trim();
+let c=document.getElementById("cantidad").value.trim();
+if(!p){alert("Escribe el nombre del producto.");return;}
+despensa.push({p,c});
+document.getElementById("producto").value="";
+document.getElementById("cantidad").value="";
+guardar();mostrarDespensa();
+}
+function mostrarDespensa(){
+let el=document.getElementById("listaDespensa");
+el.innerHTML=despensa.length?despensa.map((x,i)=>`<div class="item"><b>${escapar(x.p)}</b> — ${escapar(x.c)}
+<button class="btn2" onclick="quitarDespensa(${i})">Quitar</button></div>`).join(""):'<div class="empty">Tu despensa está vacía.</div>';
+}
+function quitarDespensa(i){despensa.splice(i,1);guardar();mostrarDespensa();}
+mostrarRecetas();
+</script>
+</body>
+</html>
+
