@@ -1,4 +1,4 @@
-
+  
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -164,6 +164,7 @@ ${recetas.map(r=>`<option value="${r.id}" ${String(r.id)===String(valor)?"select
 document.getElementById("plan").innerHTML=html;
 }
 function cambiarPlan(k,v){if(v)plan[k]=v;else delete plan[k];guardar();}
+
 function crearCompras(){
   let items={};
 
@@ -276,35 +277,12 @@ function crearCompras(){
   ).join("");
 }
 
-
-        let k=nombre.toLowerCase()+"|"+unidad;
-
-        if(!items[k]){
-          items[k]={cantidad,unidad,nombre};
-        }else{
-          items[k].cantidad+=cantidad;
-        }
-      });
-    }
-  });
-
-  let lista=Object.values(items).map(x=>{
-    let cantidad=Number(x.cantidad.toFixed(2));
-    return `${cantidad}${x.unidad?" "+x.unidad:""} ${x.nombre}`;
-  });
-
-  let el=document.getElementById("listaCompras");
-
-  if(!lista.length){
-    el.innerHTML='<div class="empty">Elige recetas en Mi semana para generar tu lista.</div>';
-    return;
-  }
-
-  el.innerHTML=lista.map(i=>
-    `<div class="item"><label><input style="width:auto;margin-right:8px" type="checkbox" ${comprados.includes(i)?"checked":""} onchange="marcarCompra('${encodeURIComponent(i)}',this.checked)"> ${escapar(i)}</label></div>`
-  ).join("");
+function marcarCompra(i,estado){
+i=decodeURIComponent(i);
+if(estado&&!comprados.includes(i))comprados.push(i);
+if(!estado)comprados=comprados.filter(x=>x!==i);
+guardar();
 }
-
 function agregarDespensa(){
 let p=document.getElementById("producto").value.trim();
 let c=document.getElementById("cantidad").value.trim();
@@ -323,5 +301,5 @@ function quitarDespensa(i){despensa.splice(i,1);guardar();mostrarDespensa();}
 mostrarRecetas();
 </script>
 </body>
-</html>
-
+  </html>
+  
