@@ -166,45 +166,119 @@ document.getElementById("plan").innerHTML=html;
 function cambiarPlan(k,v){if(v)plan[k]=v;else delete plan[k];guardar();}
 
 function crearCompras(){
+
+function crearCompras(){
   let items={};
 
+  function normalizar(s){
+    return s.toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g,"")
+      .trim();
+  }
+
+  function leerCantidad(texto){
+    texto=String(texto||"").trim();
+
+    let m=texto.match(
+      /^(\d+(?:[.,]\d+)?)\s*(kg|g|gr|gramos|l|lt|litro|litros|ml|mililitros|pza|pzas|pieza|piezas)?\s*(.*)$/i
+    );
+
+    if(!m){
+      return {
+        cantidad:1,
+        unidad:"",
+        nombre:texto
+      };
+    }
+
+    let cantidad=parseFloat(m[1].replace(",","."));
+    let unidad=(m[2]||"").toLowerCase();
+    let nombre=m[3].trim();
+
+    if(unidad==="kg"){
+      cantidad*=1000;
+      unidad="g";
+    }
+
+    if(["gr","gramos"].includes(unidad)){
+      unidad="g";
+    }
+
+    if(["l","lt","litro","litros"].includes(unidad)){
+      cantidad*=1000;
+      unidad="ml";
+    }
+
+    if(["pzas","pieza","piezas"].includes(unidad)){
+      unidad="pza";
+    }
+
+    return {cantidad,unidad,nombre};
+  }
+
+  // Sumar ingredientes de todas las recetas seleccionadas
   Object.values(plan).forEach(id=>{
     let r=recetas.find(x=>String(x.id)===String(id));
 
     if(r){
       r.ingredientes.forEach(i=>{
-        let texto=i.trim();
-        let m=texto.match(/^(\d+(?:[.,]\d+)?)\s*(kg|g|gr|gramos|l|lt|litros?|ml|mililitros|pzas?|piezas?)\s+(.+)$/i);
+        let dato=leerCantidad(i);
+        let k=normalizar(dato.nombre)+"|"+dato.unidad;
 
-        let cantidad=1;
-        let unidad="";
-        let nombre=texto;
-
-        if(m){
-          cantidad=parseFloat(m[1].replace(",","."));
-          unidad=m[2].toLowerCase();
-          nombre=m[3].trim();
+        if(!items[k]){
+          items[k]={
+            cantidad:dato.cantidad,
+            unidad:dato.unidad,
+            nombre:dato.nombre
+          };
         }else{
-          let n=texto.match(/^(\d+(?:[.,]\d+)?)\s+(.+)$/);
-          if(n){
-            cantidad=parseFloat(n[1].replace(",","."));
-            nombre=n[2].trim();
-          }
+          items[k].cantidad+=dato.cantidad;
         }
+      });
+    }
+  });
 
-        if(unidad==="kg" || unidad==="gr" || unidad==="gramos"){
-          cantidad=unidad==="kg"?cantidad*1000:cantidad;
-          unidad="g";
-        }
+  // Restar lo que ya tienes en la despensa
+  (despensa||[]).forEach(p=>{
+    let dato=leerCantidad(p.c);
+    let nombre=normalizar(p.p);
+    let unidad=dato.unidad;
 
-        if(unidad==="l" || unidad==="lt" || unidad==="litro" || unidad==="litros"){
-          cantidad*=1000;
-          unidad="ml";
-        }
+    Object.values(items).forEach(item=>{
+      if(normalizar(item.nombre)===nombre &&
+         (item.unidad===unidad || !unidad || !item.unidad)){
+        item.cantidad-=dato.cantidad;
+      }
+    });
+  });
 
-        if(unidad==="piezas" || unidad==="pieza" || unidad==="pzas"){
-          unidad="pza";
-        }
+  // Mostrar solamente lo que falta comprar
+  let lista=Object.values(items)
+    .filter(x=>x.cantidad>0.001)
+    .map(x=>{
+      let cantidad=Number(x.cantidad.toFixed(2));
+      return `${cantidad}${x.unidad?" "+x.unidad:""} ${x.nombre}`;
+    });
+
+  let el=document.getElementById("listaCompras");
+
+  if(!lista.length){
+    el.innerHTML='<div class="empty">¡Ya tienes todos los ingredientes en tu despensa!</div>';
+    return;
+  }
+
+  el.innerHTML=lista.map(i=>
+    `<div class="item"><label>
+      <input style="width:auto;margin-right:8px"
+      type="checkbox"
+      ${comprados.includes(i)?"checked":""}
+      onchange="marcarCompra('${encodeURIComponent(i)}',this.checked)">
+      ${escapar(i)}
+    </label></div>`
+  ).join("");
+}
+
 
         let k=nombre.toLowerCase()+"|"+unidad;
 
