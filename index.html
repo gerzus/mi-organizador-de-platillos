@@ -164,9 +164,6 @@ ${recetas.map(r=>`<option value="${r.id}" ${String(r.id)===String(valor)?"select
 document.getElementById("plan").innerHTML=html;
 }
 function cambiarPlan(k,v){if(v)plan[k]=v;else delete plan[k];guardar();}
-
-function crearCompras(){
-
 function crearCompras(){
   let items={};
 
