@@ -1,4 +1,4 @@
-  
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -30,6 +30,7 @@ label{font-size:14px;font-weight:bold}
 .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .row>*{flex:1}
 .day{font-weight:bold;color:#247653;margin-top:15px}
+.day-total{background:#e6eee7;color:#24583a;padding:11px 13px;border-radius:9px;margin:10px 0 18px;font-weight:bold;display:flex;justify-content:space-between;gap:10px}
 .empty{color:#718075;text-align:center;padding:22px}
 </style>
 </head>
@@ -153,17 +154,21 @@ function mostrarPlan(){
 let html="";
 dias.forEach(d=>{
 html+=`<div class="day">${d}</div>`;
+let totalDia=0;
 comidas.forEach(c=>{
 let k=d+"-"+c,valor=plan[k]||"";
+let recetaSeleccionada=recetas.find(r=>String(r.id)===String(valor));
+if(recetaSeleccionada) totalDia+=Number(recetaSeleccionada.calorias)||0;
 html+=`<label>${c}</label><select onchange="cambiarPlan('${k}',this.value)">
 <option value="">-- Elegir platillo --</option>
 ${recetas.map(r=>`<option value="${r.id}" ${String(r.id)===String(valor)?"selected":""}>${escapar(r.nombre)}</option>`).join("")}
 </select>`;
 });
+html+=`<div class="day-total"><span>Total del día (1 porción de cada platillo)</span><span>${totalDia.toLocaleString("es-MX")} kcal</span></div>`;
 });
 document.getElementById("plan").innerHTML=html;
 }
-function cambiarPlan(k,v){if(v)plan[k]=v;else delete plan[k];guardar();}
+function cambiarPlan(k,v){if(v)plan[k]=v;else delete plan[k];guardar();mostrarPlan();}
 
 function crearCompras(){
   let items={};
@@ -174,7 +179,7 @@ function crearCompras(){
       .replace(/[\u0300-\u036f]/g,"")
       .trim();
   }
-
+  
   function leerCantidad(texto){
     texto=String(texto||"").trim();
 
@@ -302,4 +307,3 @@ mostrarRecetas();
 </script>
 </body>
   </html>
-  
