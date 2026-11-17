@@ -73,7 +73,7 @@ label{font-size:14px;font-weight:bold}
 <section id="semana">
 <div class="card">
 <h2>Organiza tu menú semanal</h2>
-<p class="small">Selecciona una receta para cada comida. Los cambios se guardan en este teléfono.</p>
+<p class="small">Selecciona una receta para cada espacio del día. Los cambios se guardan en este teléfono.</p>
 <div id="plan"></div>
 </div>
 </section>
@@ -81,7 +81,7 @@ label{font-size:14px;font-weight:bold}
 <section id="compras">
 <div class="card">
 <h2>🛒 Lista de compras</h2>
-<p class="small">Ingredientes de las recetas elegidas en tu menú semanal.</p>
+<p class="small">Ingredientes de todos los platillos elegidos en tu menú semanal.</p>
 <button class="btn" onclick="crearCompras()">Generar lista</button>
 <div id="listaCompras"></div>
 </div>
@@ -101,7 +101,7 @@ label{font-size:14px;font-weight:bold}
 </main>
 <script>
 const dias=["Lunes","Martes","Miércoles","Jueves","Viernes","Sábado","Domingo"];
-const comidas=["Desayuno","Comida","Cena"];
+const comidas=["Desayuno","Antojito de la mañana","Comida","Dulce de la tarde","Cena"];
 let recetas=JSON.parse(localStorage.getItem("recetas")||"[]");
 let plan=JSON.parse(localStorage.getItem("plan")||"{}");
 let despensa=JSON.parse(localStorage.getItem("despensa")||"[]");
