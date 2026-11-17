@@ -32,6 +32,10 @@ label{font-size:14px;font-weight:bold}
 .day{font-weight:bold;color:#247653;margin-top:15px}
 .day-total{background:#e6eee7;color:#24583a;padding:11px 13px;border-radius:9px;margin:10px 0 18px;font-weight:bold;display:flex;justify-content:space-between;gap:10px}
 .empty{color:#718075;text-align:center;padding:22px}
+.recipe-photo{width:100%;max-height:210px;object-fit:cover;border-radius:10px;margin:8px 0}
+.category-menu{display:flex;flex-wrap:wrap;gap:7px;margin:10px 0 14px}
+.category-btn{border:0;border-radius:18px;padding:9px 12px;background:#e6eee7;color:#24583a;font-size:13px}
+.category-btn.active{background:#247653;color:white}
 </style>
 </head>
 <body>
@@ -58,6 +62,9 @@ label{font-size:14px;font-weight:bold}
 <option>Ensaladas</option><option>Sopas</option><option>Desayunos</option>
 <option>Postres</option><option>Otros</option>
 </select>
+<label>Foto del platillo (opcional)</label>
+<input id="foto" type="file" accept="image/*">
+<p class="small">Puedes tomar una foto o elegir una imagen de tu teléfono.</p>
 <label>Ingredientes (uno por renglón)</label>
 <textarea id="ingredientes" placeholder="500 g de pollo&#10;2 calabazas&#10;1 tomate"></textarea>
 <div class="row">
@@ -67,6 +74,9 @@ label{font-size:14px;font-weight:bold}
 <button class="btn" onclick="guardarReceta()">Guardar receta</button>
 </div>
 <h2>Mis platillos guardados</h2>
+<button class="btn2" onclick="alternarCategorias()">📂 Categorías</button>
+<div id="menuCategorias" class="category-menu" style="display:none"></div>
+<p class="small" id="categoriaActual">Mostrando: Todos los platillos</p>
 <div id="listaRecetas"></div>
 </section>
 
@@ -106,6 +116,8 @@ let recetas=JSON.parse(localStorage.getItem("recetas")||"[]");
 let plan=JSON.parse(localStorage.getItem("plan")||"{}");
 let despensa=JSON.parse(localStorage.getItem("despensa")||"[]");
 let comprados=JSON.parse(localStorage.getItem("comprados")||"[]");
+const categorias=["Todos los platillos","Pollo","Carne de res","Cerdo","Pescado","Verduras","Pastas","Ensaladas","Sopas","Desayunos","Postres","Otros"];
+let categoriaActiva="Todos los platillos";
 function guardar(){
 localStorage.setItem("recetas",JSON.stringify(recetas));
 localStorage.setItem("plan",JSON.stringify(plan));
@@ -125,23 +137,70 @@ if(id==="compras")crearCompras();
 function escapar(t){
 return String(t).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 }
-function guardarReceta(){
+function comprimirFoto(archivo){
+return new Promise((resolve,reject)=>{
+if(!archivo){resolve("");return;}
+const lector=new FileReader();
+lector.onload=()=>{
+const img=new Image();
+img.onload=()=>{
+const max=650;
+let w=img.width,h=img.height;
+if(w>h&&w>max){h=Math.round(h*max/w);w=max;}
+else if(h>=w&&h>max){w=Math.round(w*max/h);h=max;}
+const lienzo=document.createElement("canvas");
+lienzo.width=w;lienzo.height=h;
+lienzo.getContext("2d").drawImage(img,0,0,w,h);
+resolve(lienzo.toDataURL("image/jpeg",0.68));
+};
+img.onerror=reject;
+img.src=lector.result;
+};
+lector.onerror=reject;
+lector.readAsDataURL(archivo);
+});
+}
+async function guardarReceta(){
 let nombre=document.getElementById("nombre").value.trim();
 let ingredientes=document.getElementById("ingredientes").value.trim();
 if(!nombre||!ingredientes){alert("Escribe el nombre y los ingredientes.");return;}
+const boton=document.querySelector('#recetas .btn');
+boton.disabled=true;
+try{
+const archivo=document.getElementById("foto").files[0];
+const foto=await comprimirFoto(archivo);
 recetas.push({id:Date.now(),nombre,categoria:document.getElementById("categoria").value,
 ingredientes:ingredientes.split("\n").map(x=>x.trim()).filter(Boolean),
 porciones:Math.max(1,Number(document.getElementById("porciones").value)||1),
-calorias:Number(document.getElementById("calorias").value)||0});
+calorias:Number(document.getElementById("calorias").value)||0,foto});
 guardar();
-["nombre","ingredientes","calorias"].forEach(id=>document.getElementById(id).value="");
+["nombre","ingredientes","calorias","foto"].forEach(id=>document.getElementById(id).value="");
+categoriaActiva="Todos los platillos";
 mostrarRecetas();
-alert("¡Receta guardada!");
+alert("¡Platillo guardado!");
+}catch(e){
+alert("No se pudo cargar la foto. Intenta con otra imagen.");
+}finally{boton.disabled=false;}
+}
+function alternarCategorias(){
+const menu=document.getElementById("menuCategorias");
+menu.style.display=menu.style.display==="none"?"flex":"none";
+}
+function filtrarCategoria(categoria){
+categoriaActiva=categoria;
+mostrarRecetas();
 }
 function mostrarRecetas(){
+const menu=document.getElementById("menuCategorias");
+menu.innerHTML=categorias.map(c=>`<button class="category-btn ${c===categoriaActiva?"active":""}" onclick="filtrarCategoria('${c}')">${escapar(c)}</button>`).join("");
+document.getElementById("categoriaActual").textContent="Mostrando: "+categoriaActiva;
 let el=document.getElementById("listaRecetas");
 if(!recetas.length){el.innerHTML='<div class="empty">Todavía no tienes recetas guardadas.</div>';return;}
-el.innerHTML=recetas.map(r=>`<div class="card"><b>${escapar(r.nombre)}</b>
+let visibles=categoriaActiva==="Todos los platillos"?recetas:recetas.filter(r=>r.categoria===categoriaActiva);
+if(!visibles.length){el.innerHTML='<div class="empty">Todavía no tienes platillos en esta categoría.</div>';return;}
+el.innerHTML=visibles.map(r=>`<div class="card">
+${r.foto?`<img class="recipe-photo" src="${r.foto}" alt="Foto de ${escapar(r.nombre)}">`:""}
+<b>${escapar(r.nombre)}</b>
 <div class="small">${escapar(r.categoria)} · ${r.porciones} porciones · ${r.calorias} kcal por porción</div>
 <p>${r.ingredientes.map(escapar).join("<br>")}</p>
 <button class="btn2" onclick="borrarReceta(${r.id})">Eliminar</button></div>`).join("");
@@ -306,4 +365,4 @@ function quitarDespensa(i){despensa.splice(i,1);guardar();mostrarDespensa();}
 mostrarRecetas();
 </script>
 </body>
-  </html>
+</html>
