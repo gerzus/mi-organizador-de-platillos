@@ -4,8 +4,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="theme-color" content="#247653">
-<title>Mi Organizador de Platillos</title>
+<meta name="theme-color" content="#23834b">
+<meta name="description" content="Organiza tus recetas, menú semanal, compras y despensa.">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="icon" href="./icon-192.png">
+<title>Lista Lista</title>
 <style>
 *{box-sizing:border-box}
 body{margin:0;font-family:Arial,sans-serif;background:#f4f7f3;color:#26352b}
@@ -36,21 +39,49 @@ label{font-size:14px;font-weight:bold}
 .category-menu{display:flex;flex-wrap:wrap;gap:7px;margin:10px 0 14px}
 .category-btn{border:0;border-radius:18px;padding:9px 12px;background:#e6eee7;color:#24583a;font-size:13px}
 .category-btn.active{background:#247653;color:white}
+
+.brand-header{display:flex;align-items:center;gap:13px;background:#23834b;color:#fff;padding:20px 16px}
+.brand-header h1{margin:0;font-size:25px}.brand-header p{margin:6px 0 0;font-size:13px;line-height:1.35;max-width:440px}
+.brand-mark{width:52px;height:52px;flex:0 0 52px;border-radius:16px;background:#fff;color:#23834b;display:grid;place-items:center;font-size:38px;font-weight:900;box-shadow:0 3px 10px #164d2c55}
+.welcome-card{background:linear-gradient(135deg,#e9f7e9,#fff7e8);border-radius:18px;padding:20px;overflow:hidden;box-shadow:0 2px 8px #0000000d}
+.welcome-card h2{font-size:23px;line-height:1.15;margin:5px 0 8px}.welcome-card p{margin:0;color:#5d6b60}.eyebrow{font-size:10px!important;font-weight:bold;letter-spacing:1.2px;color:#23834b!important}
+.food-art{display:flex;justify-content:space-around;align-items:center;gap:4px;margin:17px -4px 0;font-size:31px}.food-art span:nth-child(even){font-size:25px;transform:translateY(7px)}
+.home-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:15px 0}
+.home-tile{border:0;background:#fff;border-radius:15px;padding:17px 10px;display:flex;flex-direction:column;align-items:center;gap:6px;color:#285b3c;box-shadow:0 2px 8px #0000000d;min-height:132px}
+.home-tile span{font-size:31px}.home-tile b{font-size:15px}.home-tile small{font-size:12px;color:#718075}
+.local-note,.backup-card{background:#eef5ed;border-radius:12px;padding:14px;color:#45644d;font-size:13px;line-height:1.5;margin:15px 0}
+.backup-card h2{margin:0 0 6px;font-size:17px}.backup-card .row{margin-top:10px}.backup-card .row>*{min-width:130px}
+nav button{white-space:nowrap;flex:0 0 auto}
+
 </style>
 </head>
 <body>
-<header>
-<h1>🥗 Mi Organizador de Platillos</h1>
-<p>Tus recetas, tu menú y tus compras en un solo lugar</p>
+<header class="brand-header">
+<div class="brand-mark" aria-hidden="true"><span>✓</span></div>
+<div><h1>Lista Lista</h1><p>Tú eliges qué cocinar, Lista Lista se encarga de organizarlo.</p></div>
 </header>
 <nav>
-<button class="active" onclick="tab('recetas',this)">🍲 Recetas</button>
+<button class="active" onclick="tab('inicio',this)">🏡 Inicio</button>
+<button onclick="tab('recetas',this)">🍲 Recetas</button>
 <button onclick="tab('semana',this)">📅 Mi semana</button>
 <button onclick="tab('compras',this)">🛒 Compras</button>
-<button onclick="tab('despensa',this)">🏠 Despensa</button>
+<button onclick="tab('despensa',this)">🥬 Despensa</button>
 </nav>
 <main>
-<section id="recetas" class="active">
+<section id="inicio" class="active">
+<div class="welcome-card">
+<div><p class="eyebrow">TU COCINA, MEJOR ORGANIZADA</p><h2>¡Hola! ¿Qué vamos a preparar?</h2><p>Ten tus recetas, comidas y compras en un solo lugar.</p></div>
+<div class="food-art" aria-label="Ilustraciones de alimentos"><span>🥑</span><span>🍅</span><span>🥕</span><span>🥦</span><span>🍋</span><span>🫑</span></div>
+</div>
+<div class="home-grid">
+<button class="home-tile" onclick="irA('recetas')"><span>🥘</span><b>Mis recetas</b><small>Guarda tus platillos</small></button>
+<button class="home-tile" onclick="irA('semana')"><span>📅</span><b>Mi semana</b><small>Planea tus comidas</small></button>
+<button class="home-tile" onclick="irA('compras')"><span>🛒</span><b>Lista de compras</b><small>Todo lo que necesitas</small></button>
+<button class="home-tile" onclick="irA('despensa')"><span>🥬</span><b>Mi despensa</b><small>Lo que ya tienes</small></button>
+</div>
+<div class="local-note">📱 Tus datos se guardan en este dispositivo. Puedes crear una copia de seguridad cuando quieras.</div>
+</section>
+<section id="recetas">
 <div class="card">
 <h2>Agregar un platillo</h2>
 <label>Nombre de la receta</label>
@@ -106,29 +137,68 @@ label{font-size:14px;font-weight:bold}
 <input id="cantidad" placeholder="Ej. 1 kg">
 <button class="btn" onclick="agregarDespensa()">Agregar a mi despensa</button>
 <div id="listaDespensa"></div>
+<div class="backup-card">
+<h2>Respaldo de mis datos</h2>
+<p class="small">Guarda una copia de tus recetas, fotos, menú y despensa para recuperarlos si cambias de teléfono.</p>
+<div class="row"><button class="btn" onclick="exportarRespaldo()">⬇ Crear respaldo</button><button class="btn2" onclick="document.getElementById('archivoRespaldo').click()">↥ Restaurar copia</button></div>
+<input id="archivoRespaldo" type="file" accept="application/json,.json" style="display:none" onchange="importarRespaldo(event)">
+</div>
 </div>
 </section>
 </main>
 <script>
 const dias=["Lunes","Martes","Miércoles","Jueves","Viernes","Sábado","Domingo"];
 const comidas=["Desayuno","Antojito de la mañana","Comida","Dulce de la tarde","Cena"];
-let recetas=JSON.parse(localStorage.getItem("recetas")||"[]");
-let plan=JSON.parse(localStorage.getItem("plan")||"{}");
-let despensa=JSON.parse(localStorage.getItem("despensa")||"[]");
-let comprados=JSON.parse(localStorage.getItem("comprados")||"[]");
+let recetas=[];
+let plan={};
+let despensa=[];
+let comprados=[];
+let db=null;
 const categorias=["Todos los platillos","Pollo","Carne de res","Cerdo","Pescado","Verduras","Pastas","Ensaladas","Sopas","Desayunos","Postres","Otros"];
 let categoriaActiva="Todos los platillos";
+function abrirBase(){
+return new Promise((resolve,reject)=>{
+const req=indexedDB.open("ListaListaDB",1);
+req.onupgradeneeded=()=>{if(!req.result.objectStoreNames.contains("datos"))req.result.createObjectStore("datos");};
+req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error);
+});
+}
+function leerRegistro(){return new Promise((resolve,reject)=>{const tx=db.transaction("datos","readonly");const r=tx.objectStore("datos").get("principal");r.onsuccess=()=>resolve(r.result||null);r.onerror=()=>reject(r.error);});}
 function guardar(){
-localStorage.setItem("recetas",JSON.stringify(recetas));
-localStorage.setItem("plan",JSON.stringify(plan));
-localStorage.setItem("despensa",JSON.stringify(despensa));
-localStorage.setItem("comprados",JSON.stringify(comprados));
+if(!db)return;
+try{const tx=db.transaction("datos","readwrite");tx.objectStore("datos").put({recetas,plan,despensa,comprados,version:1,actualizado:new Date().toISOString()},"principal");}catch(e){console.error("No se pudo guardar",e);}
+}
+async function iniciarApp(){
+try{
+db=await abrirBase();
+let datos=await leerRegistro();
+if(!datos){
+// Migración automática de la versión de prueba que usaba localStorage.
+try{datos={recetas:JSON.parse(localStorage.getItem("recetas")||"[]"),plan:JSON.parse(localStorage.getItem("plan")||"{}"),despensa:JSON.parse(localStorage.getItem("despensa")||"[]"),comprados:JSON.parse(localStorage.getItem("comprados")||"[]")};}catch(e){datos={};}
+}
+recetas=Array.isArray(datos.recetas)?datos.recetas:[];
+plan=datos.plan&&typeof datos.plan==="object"?datos.plan:{};
+despensa=Array.isArray(datos.despensa)?datos.despensa:[];
+comprados=Array.isArray(datos.comprados)?datos.comprados:[];
+guardar();
+mostrarRecetas();mostrarDespensa();
+}catch(e){alert("Este navegador no pudo abrir el almacenamiento local. Abre Lista Lista con Chrome actualizado e inténtalo de nuevo.");console.error(e);}
+}
+function irA(id){const botones=[...document.querySelectorAll("nav button")];const b=botones.find(x=>x.getAttribute("onclick")?.includes("'"+id+"'"));if(b)tab(id,b);}
+function exportarRespaldo(){
+const datos={app:"Lista Lista",version:1,fecha:new Date().toISOString(),recetas,plan,despensa,comprados};
+const blob=new Blob([JSON.stringify(datos)],{type:"application/json"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download="lista-lista-respaldo-"+new Date().toISOString().slice(0,10)+".json";a.click();URL.revokeObjectURL(url);
+}
+function importarRespaldo(event){
+const archivo=event.target.files[0];if(!archivo)return;
+const lector=new FileReader();lector.onload=()=>{try{const d=JSON.parse(lector.result);if(d.app!=="Lista Lista"||!Array.isArray(d.recetas)||!d.plan||!Array.isArray(d.despensa)||!Array.isArray(d.comprados))throw new Error("Formato no válido");if(!confirm("Restaurar esta copia reemplazará los datos actuales de Lista Lista. ¿Deseas continuar?"))return;recetas=d.recetas;plan=d.plan;despensa=d.despensa;comprados=d.comprados;guardar();mostrarRecetas();mostrarPlan();mostrarDespensa();crearCompras();alert("¡Respaldo restaurado correctamente!");}catch(e){alert("No se pudo restaurar. Selecciona un respaldo válido de Lista Lista.");}finally{event.target.value="";}};lector.readAsText(archivo);
 }
 function tab(id,boton){
 document.querySelectorAll("main section").forEach(s=>s.classList.remove("active"));
 document.getElementById(id).classList.add("active");
 document.querySelectorAll("nav button").forEach(b=>b.classList.remove("active"));
 boton.classList.add("active");
+if(id==="inicio"){}
 if(id==="recetas")mostrarRecetas();
 if(id==="semana")mostrarPlan();
 if(id==="despensa")mostrarDespensa();
@@ -362,7 +432,8 @@ el.innerHTML=despensa.length?despensa.map((x,i)=>`<div class="item"><b>${escapar
 <button class="btn2" onclick="quitarDespensa(${i})">Quitar</button></div>`).join(""):'<div class="empty">Tu despensa está vacía.</div>';
 }
 function quitarDespensa(i){despensa.splice(i,1);guardar();mostrarDespensa();}
-mostrarRecetas();
+iniciarApp();
+if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(e=>console.log("SW no registrado",e)));}
 </script>
 </body>
-</html>
+  </html>
